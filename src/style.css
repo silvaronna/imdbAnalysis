@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Best Practice: Definisikan warna tema global di sini */
+@theme {
+  --color-darkbg: #0f172a;
+  --color-cardbg: #1e293b;
+  --color-primary: #3b82f6;
+}
+
+body {
+  background-color: var(--color-darkbg);
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+}
