@@ -1,14 +1,12 @@
 <template>
   <div class="flex h-screen bg-darkbg text-slate-200 overflow-hidden relative">
     
-    <div 
-      v-if="isSidebarOpen" 
-      @click="isSidebarOpen = false" 
-      class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity"
-    ></div>
+    <transition name="fade">
+      <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"></div>
+    </transition>
 
     <Sidebar 
-      class="fixed h-screen z-50 transition-transform duration-300 ease-in-out"
+      class="fixed h-screen z-50 transition-all duration-300 ease-in-out"
       :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
       @closeSidebar="isSidebarOpen = false"
     />
@@ -22,11 +20,9 @@
         <div class="flex items-center gap-4">
           <button 
             @click="isSidebarOpen = !isSidebarOpen" 
-            class="p-2.5 rounded-xl bg-cardbg border border-slate-700 text-slate-300 hover:text-white hover:bg-primary/20 hover:border-primary/50 transition-all cursor-pointer"
+            class="p-2.5 rounded-xl bg-cardbg border border-slate-700 text-primary hover:text-white hover:bg-primary/20 hover:border-primary/50 transition-all cursor-pointer"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
-            </svg>
+            <v-icon name="fa-bars" scale="1.2"/>
           </button>
           
           <div>
@@ -40,7 +36,7 @@
         </div>
       </header>
 
-      <div class="p-6 lg:p-8 overflow-y-auto flex-1">
+      <div class="p-6 lg:p-8 overflow-y-auto flex-1 relative z-10">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -56,8 +52,9 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Sidebar from './components/Sidebar.vue'
+import { OhVueIcon as VIcon } from 'oh-vue-icons'
 
-// Secara default, biarkan sidebar terbuka di Desktop (layar lebar)
+// Sidebar default terbuka di desktop
 const isSidebarOpen = ref(window.innerWidth >= 1024)
 
 const route = useRoute()

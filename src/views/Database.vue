@@ -2,7 +2,7 @@
   <div class="animate-fade-in relative z-10">
     <div class="flex flex-col lg:flex-row justify-between lg:items-end mb-6 gap-4">
       <div>
-        <h2 class="text-2xl font-bold text-white tracking-tight">🎬 Tech Database</h2>
+        <h2 class="text-2xl font-bold text-white tracking-tight">🗄️ Tech Database</h2>
         <p class="text-primary text-sm mt-1 font-mono tracking-wide">QUERYING {{ movies.length.toLocaleString() }} RECORDS</p>
       </div>
 
@@ -72,7 +72,7 @@
       </div>
       
       <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 text-xs sm:text-sm text-slate-400 flex justify-between items-center font-mono">
-        <p>DISPLAYING <span class="text-accent">{{ paginatedMovies.length }}</span> OF <span class="text-white">{{ filteredMovies.length.toLocaleString() }}</span></p>
+        <p>DISPLAYING <span class="text-accent">{{ paginatedMovies.length }}</span> OF <span class="text-white">{{ filteredMovies.length.toLocaleString() }}</span> RECORDS</p>
       </div>
     </div>
   </div>
@@ -81,6 +81,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useMovies } from '../composables/useMovies'
+import { OhVueIcon as VIcon } from 'oh-vue-icons' // Ensure OhVueIcon is imported
 
 const { movies, isLoading, fetchMovies } = useMovies()
 
