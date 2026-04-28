@@ -6,48 +6,33 @@
     </div>
     
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card col-span-1 lg:col-span-2 group">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">⏱️</div>
-          <h4 class="text-lg font-bold text-white tracking-wide">Movie Duration Trend (Average Minutes)</h4>
-        </div>
-        <div class="h-80"><Line :data="durationData" :options="lineOptions" /></div>
-      </div>
+      <ChartCard title="Movie Duration Trend (Average Minutes)" icon="⏱️" heightClass="h-80" colSpanClass="col-span-1 lg:col-span-2" iconBgClass="bg-blue-500/20" iconTextClass="text-blue-400">
+        <Line :data="durationData" :options="lineOptions" />
+      </ChartCard>
 
-      <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">⏳</div>
-          <h4 class="text-lg font-bold text-white tracking-wide">Movie Duration Distribution (Minutes)</h4>
-        </div>
-        <div class="h-80"><Bar :data="durationDistData" :options="verticalBarOptions" /></div>
-      </div>
+      <ChartCard title="Movie Duration Distribution (Minutes)" icon="⏳" heightClass="h-80" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400">
+        <Bar :data="durationDistData" :options="verticalBarOptions" />
+      </ChartCard>
 
-      <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">🎭</div>
-          <h4 class="text-lg font-bold text-white tracking-wide">Top 10 Most Prolific Actors</h4>
-        </div>
-        <div class="h-80"><Bar :data="actorsData" :options="horizontalBarOptions" /></div>
-      </div>
+      <ChartCard title="Top 10 Most Prolific Actors" icon="🎭" heightClass="h-80" iconBgClass="bg-cyan-500/20" iconTextClass="text-cyan-400">
+        <Bar :data="actorsData" :options="horizontalBarOptions" />
+      </ChartCard>
     </div>
   </div>
 </template>
 
 <script setup>
+import ChartCard from '../components/ui/ChartCard.vue' // Import UI Component
 import { onMounted, computed } from 'vue'
 import { useMovies } from '../composables/useMovies'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend, Filler } from 'chart.js'
 import { Bar, Line } from 'vue-chartjs'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend, Filler)
-
 const { movies, isLoading, fetchMovies } = useMovies()
 onMounted(() => fetchMovies())
 
-const colorBlue = 'rgba(59, 130, 246, 0.8)'
-const colorCyan = 'rgba(6, 182, 212, 0.8)'
-const colorIndigo = 'rgba(99, 102, 241, 0.8)'
-const colorHover = 'rgba(0, 240, 255, 1)'
+const colorBlue = 'rgba(59, 130, 246, 0.8)', colorCyan = 'rgba(6, 182, 212, 0.8)', colorIndigo = 'rgba(99, 102, 241, 0.8)', colorHover = 'rgba(0, 240, 255, 1)'
 
 const durationData = computed(() => {
   const yearDurations = {}
@@ -65,7 +50,6 @@ const durationData = computed(() => {
   const avgDurations = sortedYears.map(y => (yearDurations[y].sum / yearDurations[y].count).toFixed(1))
   return { labels: sortedYears, datasets: [{ label: 'Average Minutes', data: avgDurations, borderColor: colorBlue, backgroundColor: 'rgba(59, 130, 246, 0.15)', tension: 0.4, fill: true, pointBackgroundColor: colorBlue, pointHoverBackgroundColor: colorHover, pointHoverRadius: 6 }] }
 })
-
 const durationDistData = computed(() => {
   const bins = { 'Short (< 60m)': 0, 'Standard (60-120m)': 0, 'Long (120-180m)': 0, 'Epic (> 180m)': 0 }
   movies.value.forEach(m => {
@@ -73,16 +57,12 @@ const durationDistData = computed(() => {
       const durMatch = String(m.duration).match(/(\d+)/)
       if (durMatch) {
         const dur = parseInt(durMatch[0])
-        if (dur < 60) bins['Short (< 60m)']++
-        else if (dur <= 120) bins['Standard (60-120m)']++
-        else if (dur <= 180) bins['Long (120-180m)']++
-        else bins['Epic (> 180m)']++
+        if (dur < 60) bins['Short (< 60m)']++; else if (dur <= 120) bins['Standard (60-120m)']++; else if (dur <= 180) bins['Long (120-180m)']++; else bins['Epic (> 180m)']++
       }
     }
   })
   return { labels: Object.keys(bins), datasets: [{ label: 'Number of Movies', data: Object.values(bins), backgroundColor: colorIndigo, hoverBackgroundColor: colorHover, borderRadius: 6 }] }
 })
-
 const actorsData = computed(() => {
   const actorCounts = {}
   movies.value.forEach(m => { if (m.cast) m.cast.split(',').forEach(actor => { actorCounts[actor.trim()] = (actorCounts[actor.trim()] || 0) + 1 }) })
@@ -91,7 +71,6 @@ const actorsData = computed(() => {
 })
 
 const commonTooltip = { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#00f0ff', bodyColor: '#e2e8f0', borderColor: 'rgba(6, 182, 212, 0.3)', borderWidth: 1, padding: 12, cornerRadius: 8, displayColors: false }
-
 const horizontalBarOptions = { responsive: true, maintainAspectRatio: false, indexAxis: 'y', animation: { duration: 1500, easing: 'easeOutQuart' }, interaction: { mode: 'index', axis: 'y', intersect: false }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } }, y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } } } }
 const verticalBarOptions = { responsive: true, maintainAspectRatio: false, animation: { duration: 1500, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } }, y: { grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }, ticks: { color: '#94a3b8' } } } }
 const lineOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 1500, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }, ticks: { color: '#94a3b8' } } } }

@@ -11,54 +11,32 @@
 
     <div v-else>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card">
-          <p class="text-sm text-slate-400 font-medium">Total Database</p>
-          <h3 class="text-3xl font-bold text-white mt-1.5">{{ totalMovies.toLocaleString() }}</h3>
-        </div>
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card">
-          <p class="text-sm text-slate-400 font-medium">Avg IMDB Rating</p>
-          <h3 class="text-3xl font-bold text-accent mt-1.5">{{ avgRating }}</h3>
-        </div>
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card">
-          <p class="text-sm text-slate-400 font-medium">Top Genre</p>
-          <h3 class="text-3xl font-bold text-white mt-1.5">{{ topGenre }}</h3>
-        </div>
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card">
-          <p class="text-sm text-slate-400 font-medium">Total Votes Analysis</p>
-          <h3 class="text-3xl font-bold text-indigo-400 mt-1.5">{{ formattedTotalVotes }}</h3>
-        </div>
+        <KpiCard label="Total Database" :value="totalMovies.toLocaleString()" icon="🗄️" />
+        <KpiCard label="Avg IMDB Rating" :value="avgRating" icon="⭐" textValueClass="text-accent" iconBgClass="bg-cyan-500/20" iconTextClass="text-cyan-400" />
+        <KpiCard label="Top Genre" :value="topGenre" icon="🎭" bgClass="bg-gradient-to-br from-primary/80 to-indigo-600/80 border-white/10 shadow-primary/20" textLabelClass="text-blue-100" iconBgClass="bg-white/20" iconTextClass="text-white" />
+        <KpiCard label="Total Votes Analysis" :value="formattedTotalVotes" icon="📈" textValueClass="text-indigo-400" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400" />
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group col-span-1">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">🍪</div>
-            <h4 class="text-lg font-bold text-white tracking-wide">Content Type</h4>
-          </div>
-          <div class="h-64"><Doughnut :data="typeChartData" :options="chartOptions" /></div>
-        </div>
+        <ChartCard title="Content Type" icon="🍪" heightClass="h-64">
+          <Doughnut :data="typeChartData" :options="chartOptions" />
+        </ChartCard>
 
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group col-span-1 lg:col-span-2">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">📉</div>
-            <h4 class="text-lg font-bold text-white tracking-wide">Content Release Trend</h4>
-          </div>
-          <div class="h-64"><Line :data="trendChartData" :options="lineOptions" /></div>
-        </div>
+        <ChartCard title="Content Release Trend" icon="📉" heightClass="h-64" colSpanClass="col-span-1 lg:col-span-2" iconBgClass="bg-cyan-500/20" iconTextClass="text-cyan-400">
+          <Line :data="trendChartData" :options="lineOptions" />
+        </ChartCard>
 
-        <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group col-span-1 lg:col-span-3">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">📊</div>
-            <h4 class="text-lg font-bold text-white tracking-wide">Top 10 Genres</h4>
-          </div>
-          <div class="h-80"><Bar :data="genreChartData" :options="horizontalBarOptions" /></div>
-        </div>
+        <ChartCard title="Top 10 Genres" icon="📊" heightClass="h-80" colSpanClass="col-span-1 lg:col-span-3" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400">
+          <Bar :data="genreChartData" :options="horizontalBarOptions" />
+        </ChartCard>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import KpiCard from '../components/ui/KpiCard.vue'
+import ChartCard from '../components/ui/ChartCard.vue'
 import { onMounted, computed } from 'vue'
 import { useMovies, formatLargeNumber } from '../composables/useMovies'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Filler } from 'chart.js'
@@ -80,75 +58,37 @@ const topGenre = computed(() => {
   movies.value.forEach(m => { if(m.genres) m.genres.split(',').forEach(g => { counts[g.trim()] = (counts[g.trim()] || 0) + 1 }) })
   return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, '')
 })
-
 const formattedTotalVotes = computed(() => {
   const sum = movies.value.reduce((acc, curr) => acc + (parseInt(curr.numvotes) || 0), 0)
   return formatLargeNumber(sum)
 })
 
-const colorBlue = 'rgba(59, 130, 246, 0.8)'
-const colorCyan = 'rgba(6, 182, 212, 0.8)'
-const colorIndigo = 'rgba(99, 102, 241, 0.8)'
-const colorHover = 'rgba(0, 240, 255, 1)'
+const colorBlue = 'rgba(59, 130, 246, 0.8)', colorCyan = 'rgba(6, 182, 212, 0.8)', colorIndigo = 'rgba(99, 102, 241, 0.8)', colorHover = 'rgba(0, 240, 255, 1)'
 
 const typeChartData = computed(() => {
   let movieCount = 0, tvCount = 0
   movies.value.forEach(m => { if (m.type === 'Movie') movieCount++; else if (m.type === 'TV Show') tvCount++ })
   const total = movieCount + tvCount
-  const moviePercent = ((movieCount / total) * 100).toFixed(1)
-  const tvPercent = ((tvCount / total) * 100).toFixed(1)
-
   return {
-    labels: [`Movie (${moviePercent}%)`, `TV Show (${tvPercent}%)`],
+    labels: [`Movie (${((movieCount / total) * 100).toFixed(1)}%)`, `TV Show (${((tvCount / total) * 100).toFixed(1)}%)`],
     datasets: [{ data: [movieCount, tvCount], backgroundColor: [colorBlue, colorCyan], hoverBackgroundColor: [colorHover, colorHover], borderWidth: 0, hoverOffset: 15 }]
   }
 })
-
 const trendChartData = computed(() => {
   let yearCounts = {}
-  movies.value.forEach(d => {
-    let yr = d.releaseyear
-    if (yr >= 1980 && yr <= 2023) yearCounts[yr] = (yearCounts[yr] || 0) + 1
-  })
+  movies.value.forEach(d => { let yr = d.releaseyear; if (yr >= 1980 && yr <= 2023) yearCounts[yr] = (yearCounts[yr] || 0) + 1 })
   const sortedYears = Object.keys(yearCounts).sort((a,b) => a - b)
-  return {
-    labels: sortedYears,
-    datasets: [{
-      label: 'Content Released', data: sortedYears.map(y => yearCounts[y]),
-      borderColor: colorCyan, backgroundColor: 'rgba(6, 182, 212, 0.15)', fill: true, tension: 0.4,
-      pointBackgroundColor: colorCyan, pointHoverBackgroundColor: colorHover, pointRadius: 0, pointHoverRadius: 6
-    }]
-  }
+  return { labels: sortedYears, datasets: [{ label: 'Content Released', data: sortedYears.map(y => yearCounts[y]), borderColor: colorCyan, backgroundColor: 'rgba(6, 182, 212, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: colorCyan, pointHoverBackgroundColor: colorHover, pointRadius: 0, pointHoverRadius: 6 }] }
 })
-
 const genreChartData = computed(() => {
   const counts = {}
   movies.value.forEach(m => { if(m.genres) m.genres.split(',').forEach(g => { counts[g.trim()] = (counts[g.trim()] || 0) + 1 }) })
   const sorted = Object.keys(counts).map(k => ({name: k, count: counts[k]})).sort((a,b) => b.count - a.count).slice(0, 10)
-  return {
-    labels: sorted.map(g => g.name),
-    datasets: [{ label: 'Number of Titles', data: sorted.map(g => g.count), backgroundColor: colorIndigo, hoverBackgroundColor: colorHover, borderRadius: 4 }]
-  }
+  return { labels: sorted.map(g => g.name), datasets: [{ label: 'Number of Titles', data: sorted.map(g => g.count), backgroundColor: colorIndigo, hoverBackgroundColor: colorHover, borderRadius: 4 }] }
 })
 
 const commonTooltip = { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#00f0ff', bodyColor: '#e2e8f0', borderColor: 'rgba(6, 182, 212, 0.3)', borderWidth: 1, padding: 12, cornerRadius: 8 }
-
-const chartOptions = {
-  responsive: true, maintainAspectRatio: false, animation: { duration: 1500, easing: 'easeOutQuart' },
-  plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } }, tooltip: commonTooltip },
-  scales: { x: { display: false }, y: { display: false } } 
-}
-
-const lineOptions = {
-  responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 1500, easing: 'easeOutQuart' },
-  plugins: { legend: { display: false }, tooltip: commonTooltip },
-  scales: { x: { ticks: { color: '#64748b' }, grid: { display: false } }, y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5, 5] } } }
-}
-
-const horizontalBarOptions = {
-  responsive: true, maintainAspectRatio: false, indexAxis: 'y', animation: { duration: 1500, easing: 'easeOutQuart' },
-  interaction: { mode: 'index', axis: 'y', intersect: false },
-  plugins: { legend: { display: false }, tooltip: commonTooltip },
-  scales: { x: { grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }, ticks: { color: '#94a3b8' } }, y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } } }
-}
+const chartOptions = { responsive: true, maintainAspectRatio: false, animation: { duration: 1500, easing: 'easeOutQuart' }, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } }, tooltip: commonTooltip }, scales: { x: { display: false }, y: { display: false } } }
+const lineOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 1500, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { ticks: { color: '#64748b' }, grid: { display: false } }, y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5, 5] } } } }
+const horizontalBarOptions = { responsive: true, maintainAspectRatio: false, indexAxis: 'y', animation: { duration: 1500, easing: 'easeOutQuart' }, interaction: { mode: 'index', axis: 'y', intersect: false }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }, ticks: { color: '#94a3b8' } }, y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } } } }
 </script>

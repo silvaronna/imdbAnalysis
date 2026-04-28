@@ -1,100 +1,83 @@
 <template>
-  <div class="animate-fade-in relative z-10">
-    <div class="flex flex-col lg:flex-row justify-between lg:items-end mb-6 gap-4">
+  <div class="animate-fade-in relative z-10 flex flex-col h-full">
+    <div class="mb-6 space-y-4">
       <div>
-        <h2 class="text-2xl font-bold text-white tracking-tight">🗄️ Tech Database</h2>
-        <p class="text-primary text-sm mt-1 font-mono tracking-wide">QUERYING {{ movies.length.toLocaleString() }} RECORDS</p>
+        <h2 class="text-2xl font-bold text-white">🗄️ Tech Database</h2>
+        <p class="text-primary text-sm font-mono">EXPLORING {{ movies.length.toLocaleString() }} RECORDS</p>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-        <div class="relative w-full sm:w-auto group">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-primary group-focus-within:text-accent transition-colors">🔍</span>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Search payload..." 
-            class="bg-slate-900/50 backdrop-blur-md border border-slate-700/80 pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent w-full sm:w-64 text-white transition-all shadow-inner"
-          >
+      <div class="bg-cardbg backdrop-blur-xl border border-slate-700/50 p-4 rounded-2xl flex flex-wrap gap-4">
+        <div class="relative flex-1 min-w-[200px]">
+          <v-icon name="fa-search" class="absolute left-3 top-3 text-primary" scale="0.9" />
+          <input v-model="filters.title" placeholder="Search title..." class="bg-slate-900/50 border border-slate-700/80 pl-10 pr-4 py-2 rounded-xl text-sm w-full text-white focus:border-accent outline-none">
         </div>
-
-        <div class="flex items-center justify-between sm:justify-start gap-3 bg-slate-900/50 backdrop-blur-md border border-slate-700/80 px-4 py-2 rounded-xl focus-within:border-primary transition-colors">
-          <span class="text-sm text-slate-400 font-mono">LIMIT:</span>
-          <select v-model="entriesLimit" class="bg-transparent text-accent text-sm font-bold focus:outline-none cursor-pointer">
-            <option :value="20">20</option>
-            <option :value="30">30</option>
-            <option :value="40">40</option>
-            <option :value="100">100</option>
-          </select>
-        </div>
+        <input v-model="filters.cast" placeholder="Filter by Actor..." class="bg-slate-900/50 border border-slate-700/80 px-4 py-2 rounded-xl text-sm flex-1 min-w-[150px] text-white focus:border-accent outline-none">
+        <select v-model="filters.type" class="bg-slate-900/50 border border-slate-700/80 px-4 py-2 rounded-xl text-sm text-slate-300 min-w-[120px] outline-none">
+          <option value="">All Types</option><option value="Movie">Movie</option><option value="TV Show">TV Show</option>
+        </select>
+        <select v-model="filters.minRating" class="bg-slate-900/50 border border-slate-700/80 px-4 py-2 rounded-xl text-sm text-slate-300 min-w-[140px] outline-none">
+          <option value="0">All Ratings</option><option value="9">⭐ 9.0+</option><option value="8">⭐ 8.0+</option><option value="7">⭐ 7.0+</option>
+        </select>
+        <button @click="resetFilters" class="px-4 py-2 bg-slate-800 text-slate-300 border border-slate-600 rounded-xl text-sm">Reset</button>
       </div>
     </div>
 
-    <div class="bg-cardbg backdrop-blur-xl rounded-2xl border border-slate-700/50 tech-card overflow-hidden">
-      <div v-if="isLoading" class="p-16 flex flex-col items-center justify-center text-accent">
-        <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="font-mono tracking-widest text-sm animate-pulse">FETCHING DATA...</p>
-      </div>
+    <div class="bg-cardbg backdrop-blur-xl rounded-2xl border border-slate-700/50 flex flex-col flex-1 overflow-hidden">
+      <div v-if="isLoading" class="p-16 text-center text-accent animate-pulse font-mono">FETCHING DATA...</div>
       
-      <div v-else class="overflow-x-auto">
+      <div v-else class="overflow-x-auto flex-1">
         <table class="w-full text-left text-sm text-slate-300 whitespace-nowrap">
-          <thead class="bg-slate-900/60 text-slate-400 border-b border-slate-700/80 uppercase text-xs tracking-wider font-mono">
+          <thead class="bg-slate-900/80 text-slate-400 border-b border-slate-700/80 uppercase text-xs tracking-wider font-mono select-none">
             <tr>
-              <th class="px-6 py-4 font-semibold w-1/3">Title</th>
-              <th class="px-6 py-4 font-semibold">Year</th>
-              <th class="px-6 py-4 font-semibold">Genre</th>
-              <th class="px-6 py-4 font-semibold">Rating</th>
-              <th class="px-6 py-4 font-semibold text-right">Votes</th>
+              <th @click="sortBy('title')" class="px-6 py-4 cursor-pointer hover:text-white">Title <v-icon :name="getSortIcon('title')" scale="0.8"/></th>
+              <th @click="sortBy('type')" class="px-6 py-4 cursor-pointer hover:text-white">Type <v-icon :name="getSortIcon('type')" scale="0.8"/></th>
+              <th @click="sortBy('releaseyear')" class="px-6 py-4 cursor-pointer hover:text-white">Year <v-icon :name="getSortIcon('releaseyear')" scale="0.8"/></th>
+              <th class="px-6 py-4">Duration</th>
+              <th class="px-6 py-4">Genre</th>
+              <th class="px-6 py-4">Cast</th>
+              <th @click="sortBy('imdbrating')" class="px-6 py-4 cursor-pointer hover:text-white">Rating <v-icon :name="getSortIcon('imdbrating')" scale="0.8"/></th>
+              <th @click="sortBy('numvotes')" class="px-6 py-4 cursor-pointer hover:text-white text-right">Votes <v-icon :name="getSortIcon('numvotes')" scale="0.8"/></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-700/30">
-            <tr v-for="movie in paginatedMovies" :key="movie.title + movie.releaseyear" 
-                class="hover:bg-primary/10 hover:shadow-[inset_0_0_15px_rgba(0,240,255,0.15)] transition-all duration-300 group">
-              <td class="px-6 py-4 font-bold text-white group-hover:text-accent transition-colors">{{ movie.title }}</td>
-              <td class="px-6 py-4 text-slate-400">{{ movie.releaseyear }}</td>
-              <td class="px-6 py-4 text-xs text-slate-500">{{ movie.genres || '-' }}</td>
-              <td class="px-6 py-4">
-                <span class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2.5 py-1 rounded-md font-bold text-xs shadow-[0_0_10px_rgba(6,182,212,0.2)]">
-                  ⭐ {{ movie.imdbrating || 'N/A' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 font-mono text-right text-slate-400 group-hover:text-white transition-colors">
-                {{ movie.numvotes ? parseInt(movie.numvotes).toLocaleString() : '0' }}
-              </td>
-            </tr>
-            <tr v-if="paginatedMovies.length === 0">
-              <td colspan="5" class="px-6 py-16 text-center text-slate-500">
-                <div class="text-4xl mb-3 opacity-50">🤖</div>
-                <p class="font-mono text-accent">404: RECORD NOT FOUND</p>
-              </td>
+            <tr v-for="m in paginatedData" :key="m.showid" class="hover:bg-primary/10 transition-colors">
+              <td class="px-6 py-4 font-bold text-white max-w-[250px] truncate">{{ m.title }}</td>
+              <td class="px-6 py-4 text-xs font-mono" :class="m.type === 'Movie' ? 'text-blue-400' : 'text-purple-400'">{{ m.type }}</td>
+              <td class="px-6 py-4">{{ m.releaseyear }}</td>
+              <td class="px-6 py-4 text-xs">{{ m.duration || '-' }}</td>
+              <td class="px-6 py-4 text-xs max-w-[150px] truncate" :title="m.genres">{{ m.genres || '-' }}</td>
+              <td class="px-6 py-4 text-xs max-w-[200px] truncate" :title="m.cast">{{ m.cast || '-' }}</td>
+              <td class="px-6 py-4"><span class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded-md font-bold text-xs">⭐ {{ m.imdbrating || 'N/A' }}</span></td>
+              <td class="px-6 py-4 font-mono text-right">{{ m.numvotes ? parseInt(m.numvotes).toLocaleString() : '0' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
       
-      <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 text-xs sm:text-sm text-slate-400 flex justify-between items-center font-mono">
-        <p>DISPLAYING <span class="text-accent">{{ paginatedMovies.length }}</span> OF <span class="text-white">{{ filteredMovies.length.toLocaleString() }}</span> RECORDS</p>
-      </div>
+      <TablePagination 
+        v-model="itemsPerPage" 
+        :current-page="currentPage" :total-pages="totalPages" 
+        :start-index="startIndex" :end-index="endIndex" :total-items="processedData.length"
+        @prev="currentPage--" @next="currentPage++" 
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useMovies } from '../composables/useMovies'
+import { useDataTable } from '../composables/useDataTable'
+import TablePagination from '../components/ui/TablePagination.vue'
 
 const { movies, isLoading, fetchMovies } = useMovies()
-
-const searchQuery = ref('')
-const entriesLimit = ref(20)
-
 onMounted(() => fetchMovies())
 
-const filteredMovies = computed(() => {
-  if (!movies.value || movies.value.length === 0) return []
-  if (!searchQuery.value.trim()) return movies.value
-  const query = searchQuery.value.toLowerCase().trim()
-  return movies.value.filter(movie => movie.title && String(movie.title).toLowerCase().includes(query))
-})
-
-const paginatedMovies = computed(() => filteredMovies.value.slice(0, entriesLimit.value))
+// Panggil "mesin" tabel dari composable
+const { 
+  filters, currentPage, itemsPerPage, resetFilters, 
+  processedData, totalPages, startIndex, endIndex, paginatedData, sortBy, getSortIcon 
+} = useDataTable(movies)
 </script>
+
+<style scoped> .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } </style>
