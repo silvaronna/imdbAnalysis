@@ -17,18 +17,7 @@
 
         <div class="flex items-center gap-4">
           
-          <div class="hidden lg:flex items-center gap-2 bg-slate-900/80 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-inner">
-            <span class="text-primary text-sm">📅</span>
-            <select v-model="yearFrom" class="bg-transparent text-slate-300 text-xs font-bold focus:outline-none cursor-pointer">
-              <option value="All">Start: All</option>
-              <option v-for="y in availableYears" :key="'from'+y" :value="y">{{ y }}</option>
-            </select>
-            <span class="text-slate-500">-</span>
-            <select v-model="yearTo" class="bg-transparent text-slate-300 text-xs font-bold focus:outline-none cursor-pointer">
-              <option value="All">End: 2023</option>
-              <option v-for="y in availableYears" :key="'to'+y" :value="y">{{ y }}</option>
-            </select>
-          </div>
+          <TimeFrameFilter class="hidden lg:flex" />
 
           <div class="hidden lg:flex flex-col items-end">
             <span class="text-sm font-bold text-white">{{ currentRouteName }}</span>
@@ -37,7 +26,7 @@
             </span>
           </div>
 
-          <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="md:hidden p-2 rounded-xl bg-slate-800 text-accent border border-slate-700">
+          <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="md:hidden p-2 rounded-xl bg-slate-800 text-accent border border-slate-700 hover:bg-slate-700">
             <v-icon :name="isMobileMenuOpen ? 'fa-times' : 'fa-bars'" scale="1.2"/>
           </button>
         </div>
@@ -54,17 +43,8 @@
         </div>
         
         <div class="p-4 border-t border-slate-700/50 bg-slate-800/30">
-          <span class="text-xs text-slate-500 font-mono mb-2 block">TIME FRAME FILTER</span>
-          <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
-            <span class="text-primary text-sm">📅</span>
-            <select v-model="yearFrom" class="bg-transparent text-slate-300 text-sm font-bold focus:outline-none w-full">
-              <option value="All">Start: All</option><option v-for="y in availableYears" :value="y">{{ y }}</option>
-            </select>
-            <span class="text-slate-500">-</span>
-            <select v-model="yearTo" class="bg-transparent text-slate-300 text-sm font-bold focus:outline-none w-full">
-              <option value="All">End: 2023</option><option v-for="y in availableYears" :value="y">{{ y }}</option>
-            </select>
-          </div>
+          <span class="text-xs text-slate-500 font-mono mb-2 block tracking-wider">TIME FRAME FILTER</span>
+          <TimeFrameFilter class="justify-between" />
         </div>
       </nav>
     </transition>
@@ -74,13 +54,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMovies } from '../../composables/useMovies'
-
-// Tarik fungsi filter waktu dari useMovies
-const { yearFrom, yearTo, availableYears } = useMovies()
+import TimeFrameFilter from '../ui/TimeFrameFilter.vue' // Import komponen mungil kita!
 
 const isMobileMenuOpen = ref(false)
 const route = useRoute()
+
 const currentRouteName = computed(() => {
   if (route.path === '/') return 'Overview'
   if (route.path === '/ratings') return 'Ratings'
@@ -91,6 +69,7 @@ const currentRouteName = computed(() => {
 </script>
 
 <style scoped>
+/* Class CSS Navigasi tetap sama */
 .nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; color: #94a3b8; transition: all 0.3s ease; }
 .nav-item:hover { color: #ffffff; background-color: rgba(51, 65, 85, 0.5); }
 .nav-active { background-color: rgba(14, 165, 233, 0.15); color: #00f0ff !important; box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.15); }
