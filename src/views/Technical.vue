@@ -1,100 +1,98 @@
 <template>
   <div class="animate-fade-in relative z-10">
-    <div class="flex flex-col lg:flex-row justify-between lg:items-end mb-6 gap-4">
-      <div>
-        <h2 class="text-2xl font-bold text-white tracking-tight">🗄️ Tech Database</h2>
-        <p class="text-primary text-sm mt-1 font-mono tracking-wide">QUERYING {{ movies.length.toLocaleString() }} RECORDS</p>
-      </div>
-
-      <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-        <div class="relative w-full sm:w-auto group">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-primary group-focus-within:text-accent transition-colors">🔍</span>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Search payload..." 
-            class="bg-slate-900/50 backdrop-blur-md border border-slate-700/80 pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent w-full sm:w-64 text-white transition-all shadow-inner"
-          >
-        </div>
-
-        <div class="flex items-center justify-between sm:justify-start gap-3 bg-slate-900/50 backdrop-blur-md border border-slate-700/80 px-4 py-2 rounded-xl focus-within:border-primary transition-colors">
-          <span class="text-sm text-slate-400 font-mono">LIMIT:</span>
-          <select v-model="entriesLimit" class="bg-transparent text-accent text-sm font-bold focus:outline-none cursor-pointer">
-            <option :value="20">20</option>
-            <option :value="30">30</option>
-            <option :value="40">40</option>
-            <option :value="100">100</option>
-          </select>
-        </div>
-      </div>
+    <div v-if="isLoading" class="flex flex-col items-center justify-center h-64 text-accent">
+      <div class="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p class="font-semibold tracking-widest uppercase text-sm animate-pulse">Initializing Specs...</p>
     </div>
+    
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card col-span-1 lg:col-span-2 group">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">⏱️</div>
+          <h4 class="text-lg font-bold text-white tracking-wide">Movie Duration Trend (Average Minutes)</h4>
+        </div>
+        <div class="h-80"><Line :data="durationData" :options="lineOptions" /></div>
+      </div>
 
-    <div class="bg-cardbg backdrop-blur-xl rounded-2xl border border-slate-700/50 tech-card overflow-hidden">
-      <div v-if="isLoading" class="p-16 flex flex-col items-center justify-center text-accent">
-        <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="font-mono tracking-widest text-sm animate-pulse">FETCHING DATA...</p>
+      <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">⏳</div>
+          <h4 class="text-lg font-bold text-white tracking-wide">Movie Duration Distribution (Minutes)</h4>
+        </div>
+        <div class="h-80"><Bar :data="durationDistData" :options="verticalBarOptions" /></div>
       </div>
-      
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-300 whitespace-nowrap">
-          <thead class="bg-slate-900/60 text-slate-400 border-b border-slate-700/80 uppercase text-xs tracking-wider font-mono">
-            <tr>
-              <th class="px-6 py-4 font-semibold w-1/3">Title</th>
-              <th class="px-6 py-4 font-semibold">Year</th>
-              <th class="px-6 py-4 font-semibold">Genre</th>
-              <th class="px-6 py-4 font-semibold">Rating</th>
-              <th class="px-6 py-4 font-semibold text-right">Votes</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-700/30">
-            <tr v-for="movie in paginatedMovies" :key="movie.title + movie.releaseyear" 
-                class="hover:bg-primary/10 hover:shadow-[inset_0_0_15px_rgba(0,240,255,0.15)] transition-all duration-300 group">
-              <td class="px-6 py-4 font-bold text-white group-hover:text-accent transition-colors">{{ movie.title }}</td>
-              <td class="px-6 py-4 text-slate-400">{{ movie.releaseyear }}</td>
-              <td class="px-6 py-4 text-xs text-slate-500">{{ movie.genres || '-' }}</td>
-              <td class="px-6 py-4">
-                <span class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2.5 py-1 rounded-md font-bold text-xs shadow-[0_0_10px_rgba(6,182,212,0.2)]">
-                  ⭐ {{ movie.imdbrating || 'N/A' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 font-mono text-right text-slate-400 group-hover:text-white transition-colors">
-                {{ movie.numvotes ? parseInt(movie.numvotes).toLocaleString() : '0' }}
-              </td>
-            </tr>
-            <tr v-if="paginatedMovies.length === 0">
-              <td colspan="5" class="px-6 py-16 text-center text-slate-500">
-                <div class="text-4xl mb-3 opacity-50">🤖</div>
-                <p class="font-mono text-accent">404: RECORD NOT FOUND</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 text-xs sm:text-sm text-slate-400 flex justify-between items-center font-mono">
-        <p>DISPLAYING <span class="text-accent">{{ paginatedMovies.length }}</span> OF <span class="text-white">{{ filteredMovies.length.toLocaleString() }}</span> RECORDS</p>
+
+      <div class="bg-cardbg backdrop-blur-xl p-6 rounded-2xl border border-slate-700/50 tech-card group">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">🎭</div>
+          <h4 class="text-lg font-bold text-white tracking-wide">Top 10 Most Prolific Actors</h4>
+        </div>
+        <div class="h-80"><Bar :data="actorsData" :options="horizontalBarOptions" /></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useMovies } from '../composables/useMovies'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend, Filler } from 'chart.js'
+import { Bar, Line } from 'vue-chartjs'
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend, Filler)
 
 const { movies, isLoading, fetchMovies } = useMovies()
-
-const searchQuery = ref('')
-const entriesLimit = ref(20)
-
 onMounted(() => fetchMovies())
 
-const filteredMovies = computed(() => {
-  if (!movies.value || movies.value.length === 0) return []
-  if (!searchQuery.value.trim()) return movies.value
-  const query = searchQuery.value.toLowerCase().trim()
-  return movies.value.filter(movie => movie.title && String(movie.title).toLowerCase().includes(query))
+const colorBlue = 'rgba(59, 130, 246, 0.8)'
+const colorCyan = 'rgba(6, 182, 212, 0.8)'
+const colorIndigo = 'rgba(99, 102, 241, 0.8)'
+const colorHover = 'rgba(0, 240, 255, 1)'
+
+const durationData = computed(() => {
+  const yearDurations = {}
+  movies.value.forEach(m => {
+    if (m.type === 'Movie' && m.releaseyear >= 1980 && m.releaseyear <= 2023) {
+      const durMatch = String(m.duration).match(/(\d+)/)
+      if (durMatch) {
+        const dur = parseInt(durMatch[0]); const yr = m.releaseyear
+        if (!yearDurations[yr]) yearDurations[yr] = { sum: 0, count: 0 }
+        yearDurations[yr].sum += dur; yearDurations[yr].count++
+      }
+    }
+  })
+  const sortedYears = Object.keys(yearDurations).sort((a,b) => a - b)
+  const avgDurations = sortedYears.map(y => (yearDurations[y].sum / yearDurations[y].count).toFixed(1))
+  return { labels: sortedYears, datasets: [{ label: 'Average Minutes', data: avgDurations, borderColor: colorBlue, backgroundColor: 'rgba(59, 130, 246, 0.15)', tension: 0.4, fill: true, pointBackgroundColor: colorBlue, pointHoverBackgroundColor: colorHover, pointHoverRadius: 6 }] }
 })
 
-const paginatedMovies = computed(() => filteredMovies.value.slice(0, entriesLimit.value))
+const durationDistData = computed(() => {
+  const bins = { 'Short (< 60m)': 0, 'Standard (60-120m)': 0, 'Long (120-180m)': 0, 'Epic (> 180m)': 0 }
+  movies.value.forEach(m => {
+    if (m.type === 'Movie') {
+      const durMatch = String(m.duration).match(/(\d+)/)
+      if (durMatch) {
+        const dur = parseInt(durMatch[0])
+        if (dur < 60) bins['Short (< 60m)']++
+        else if (dur <= 120) bins['Standard (60-120m)']++
+        else if (dur <= 180) bins['Long (120-180m)']++
+        else bins['Epic (> 180m)']++
+      }
+    }
+  })
+  return { labels: Object.keys(bins), datasets: [{ label: 'Number of Movies', data: Object.values(bins), backgroundColor: colorIndigo, hoverBackgroundColor: colorHover, borderRadius: 6 }] }
+})
+
+const actorsData = computed(() => {
+  const actorCounts = {}
+  movies.value.forEach(m => { if (m.cast) m.cast.split(',').forEach(actor => { actorCounts[actor.trim()] = (actorCounts[actor.trim()] || 0) + 1 }) })
+  const sortedActors = Object.keys(actorCounts).map(name => ({ name, count: actorCounts[name] })).sort((a, b) => b.count - a.count).slice(0, 10)
+  return { labels: sortedActors.map(a => a.name), datasets: [{ label: 'Number of Movies', data: sortedActors.map(a => a.count), backgroundColor: colorCyan, hoverBackgroundColor: colorHover, borderRadius: 6 }] }
+})
+
+const commonTooltip = { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#00f0ff', bodyColor: '#e2e8f0', borderColor: 'rgba(6, 182, 212, 0.3)', borderWidth: 1, padding: 12, cornerRadius: 8, displayColors: false }
+
+const horizontalBarOptions = { responsive: true, maintainAspectRatio: false, indexAxis: 'y', animation: { duration: 1500, easing: 'easeOutQuart' }, interaction: { mode: 'index', axis: 'y', intersect: false }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { color: 'rgba(51, 65, 85, 0.3)' }, ticks: { color: '#94a3b8' } }, y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } } } }
+const verticalBarOptions = { responsive: true, maintainAspectRatio: false, animation: { duration: 1500, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { weight: '500' } } }, y: { grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }, ticks: { color: '#94a3b8' } } } }
+const lineOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 1500, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { grid: { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }, ticks: { color: '#94a3b8' } } } }
 </script>
