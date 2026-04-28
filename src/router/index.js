@@ -12,6 +12,7 @@ const routes = [
 ]
 
 export const router = createRouter({
-  history: createWebHistory(),
+  // Tambahkan BASE_URL di dalam kurung createWebHistory
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })

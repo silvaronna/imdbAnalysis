@@ -27,10 +27,10 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useMovies } from '../composables/useMovies'
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend, Filler } from 'chart.js'
 import { Bar, Line } from 'vue-chartjs'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Tooltip, Legend, Filler)
 
 const { movies, isLoading, fetchMovies } = useMovies()
 onMounted(() => fetchMovies())

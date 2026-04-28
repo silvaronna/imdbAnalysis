@@ -50,12 +50,11 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useMovies } from '../composables/useMovies'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Filler } from 'chart.js'
 import { Doughnut, Line } from 'vue-chartjs'
 
 // Register elemen Chart.js yang akan digunakan
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement)
-
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Filler)
 // Panggil state global
 const { movies, isLoading, error, fetchMovies } = useMovies()
 

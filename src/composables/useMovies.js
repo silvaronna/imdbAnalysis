@@ -12,13 +12,16 @@ export function useMovies() {
     isLoading.value = true
     error.value = null
 
-    // Mengambil file CSV dari folder public/ tanpa butuh backend Node.js!
-    Papa.parse('/imdb_data.csv', {
+    // TRIK PALING SEMPURNA: Gunakan BASE_URL bawaan Vite.
+    // Di lokal ini akan menjadi '/imdbAnalysis/imdb_data.csv'
+    // Di GitHub ini juga akan menjadi '/imdbAnalysis/imdb_data.csv'
+    const csvPath = import.meta.env.BASE_URL + 'imdb_data.csv'
+
+    Papa.parse(csvPath, {
       download: true,
       header: true,
       dynamicTyping: true,
       complete: (results) => {
-        // Membersihkan data kosong
         movies.value = results.data.filter(row => row.title)
         isLoading.value = false
       },
