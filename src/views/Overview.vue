@@ -11,10 +11,10 @@
 
     <div v-else>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <KpiCard label="Total Database" :value="totalMovies.toLocaleString()" icon="🗄️" />
+        <KpiCard label="Elite Content (8.0+)" :value="highTierContentPercentage" icon="🏆" />
         <KpiCard label="Avg IMDB Rating" :value="avgRating" icon="⭐" textValueClass="text-accent" iconBgClass="bg-cyan-500/20" iconTextClass="text-cyan-400" />
-        <KpiCard label="Top Genre" :value="topGenre" icon="🎭" bgClass="bg-gradient-to-br from-primary/80 to-indigo-600/80 border-white/10 shadow-primary/20" textLabelClass="text-blue-100" iconBgClass="bg-white/20" iconTextClass="text-white" />
-        <KpiCard label="Total Votes Analysis" :value="formattedTotalVotes" icon="📈" textValueClass="text-indigo-400" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400" />
+        <KpiCard :label="topGenreLabel" :value="topGenre" icon="🎭" bgClass="bg-gradient-to-br from-primary/80 to-indigo-600/80 border-white/10 shadow-primary/20" textLabelClass="text-blue-100" iconBgClass="bg-white/20" iconTextClass="text-white" />
+        <KpiCard label="Most Popular Title" :value="topVotedTitle" icon="👑" textValueClass="text-indigo-400 text-sm truncate" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400" />
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -45,24 +45,36 @@ import { Doughnut, Line, Bar } from 'vue-chartjs'
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Filler)
 
 // 🔥 AMBIL filteredMoviesByTime DARI STATE GLOBAL
-const { filteredMoviesByTime, isLoading, error, fetchMovies } = useMovies()
+const { filteredMoviesByTime, isLoading, error, fetchMovies, yearFrom, yearTo } = useMovies()
 onMounted(() => fetchMovies())
 
 // Semuanya sekarang bereaksi terhadap filteredMoviesByTime
-const totalMovies = computed(() => filteredMoviesByTime.value.length)
+const highTierContentPercentage = computed(() => {
+  if (filteredMoviesByTime.value.length === 0) return '0%'
+  const highTier = filteredMoviesByTime.value.filter(m => parseFloat(m.imdbrating) >= 8.0)
+  return ((highTier.length / filteredMoviesByTime.value.length) * 100).toFixed(1) + '%'
+})
 const avgRating = computed(() => {
   if (filteredMoviesByTime.value.length === 0) return 0
   const sum = filteredMoviesByTime.value.reduce((acc, curr) => acc + (parseFloat(curr.imdbrating) || 0), 0)
   return (sum / filteredMoviesByTime.value.length).toFixed(1)
+})
+const topGenreLabel = computed(() => {
+  const from = yearFrom.value === 'All' ? '1980' : yearFrom.value
+  const to = yearTo.value === 'All' ? '2023' : yearTo.value
+  return from === '1980' && to === '2023' ? 'Top Genre (All Time)' : `Top Genre (${from}-${to})`
 })
 const topGenre = computed(() => {
   const counts = {}
   filteredMoviesByTime.value.forEach(m => { if(m.genres) m.genres.split(',').forEach(g => { counts[g.trim()] = (counts[g.trim()] || 0) + 1 }) })
   return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, '') || '-'
 })
-const formattedTotalVotes = computed(() => {
-  const sum = filteredMoviesByTime.value.reduce((acc, curr) => acc + (parseInt(curr.numvotes) || 0), 0)
-  return formatLargeNumber(sum)
+const topVotedTitle = computed(() => {
+  if (filteredMoviesByTime.value.length === 0) return '-'
+  const top = filteredMoviesByTime.value.reduce((prev, current) => {
+    return (parseInt(prev.numvotes) || 0) > (parseInt(current.numvotes) || 0) ? prev : current
+  })
+  return top.title || '-'
 })
 
 const colorBlue = 'rgba(59, 130, 246, 0.8)'

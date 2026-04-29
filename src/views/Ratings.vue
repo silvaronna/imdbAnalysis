@@ -7,7 +7,7 @@
     
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
-      <ChartCard title="Popularity vs Quality Correlation" icon="🎯" heightClass="h-96" colSpanClass="col-span-1 lg:col-span-2" iconBgClass="bg-cyan-500/20" iconTextClass="text-cyan-400">
+      <ChartCard title="IMDB Rating vs. Total Votes" icon="🎯" heightClass="h-96" colSpanClass="col-span-1 lg:col-span-2" iconBgClass="bg-cyan-500/20" iconTextClass="text-cyan-400">
         <template #header-actions>
           <div class="relative group w-full sm:w-64">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-500 group-focus-within:text-cyan-400"><v-icon name="fa-search" scale="0.8"/></span>
@@ -25,7 +25,7 @@
         <Line :data="typeEvolutionData" :options="interactiveLineOptions" />
       </ChartCard>
 
-      <ChartCard title="Genres by Consistency" icon="🏆" heightClass="h-96" colSpanClass="col-span-1 lg:col-span-2" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400">
+      <ChartCard title="Average Rating by Genre" icon="🏆" heightClass="h-96" colSpanClass="col-span-1 lg:col-span-2" iconBgClass="bg-indigo-500/20" iconTextClass="text-indigo-400">
         <template #header-actions>
           <div class="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
             <div class="relative group w-full sm:w-56">
@@ -66,7 +66,7 @@ const commonTooltip = { backgroundColor: 'rgba(15, 23, 42, 0.95)', titleColor: '
 const interactiveLegend = { display: true, position: 'bottom', labels: { color: '#cbd5e1', usePointStyle: true, padding: 20 } }
 const gridLines = { color: 'rgba(51, 65, 85, 0.3)', borderDash: [5,5] }
 
-const scatterOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { ...commonTooltip, callbacks: { label: (ctx) => `${ctx.raw.title}: ⭐${ctx.raw.y} (${ctx.raw.x.toLocaleString()} votes)` } } }, scales: { x: { type: 'linear', title: { display: true, text: 'Total Votes', color: '#64748b' }, grid: gridLines, ticks: { color: '#94a3b8' } }, y: { title: { display: true, text: 'IMDB Rating', color: '#64748b' }, grid: gridLines, ticks: { color: '#e2e8f0' } } } }
+const scatterOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { ...commonTooltip, callbacks: { label: (ctx) => `${ctx.raw.title}: ⭐${ctx.raw.y} (${ctx.raw.x.toLocaleString()} votes)` } } }, scales: { x: { type: 'linear', title: { display: true, text: 'Total Votes', color: '#64748b' }, grid: gridLines, ticks: { color: '#94a3b8', callback: (value) => value >= 1000000 ? (value / 1000000) + 'M' : value >= 1000 ? (value / 1000) + 'k' : value } }, y: { title: { display: true, text: 'IMDB Rating', color: '#64748b' }, grid: gridLines, ticks: { color: '#e2e8f0' } } } }
 const barOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8' } }, y: { title: { display: true, text: 'Avg Rating' }, grid: gridLines, ticks: { color: '#e2e8f0' }, min: 5, max: 10 } } }
 const interactiveLineOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: interactiveLegend, tooltip: commonTooltip }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { title: { display: true, text: 'Avg IMDB Rating', color: '#64748b' }, ticks: { color: '#e2e8f0' }, grid: gridLines } } }
 const horizontalBarOptions = { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false }, tooltip: commonTooltip }, scales: { x: { title: { display: true, text: 'Avg Rating' }, grid: gridLines, ticks: { color: '#94a3b8' }, min: 5 }, y: { grid: { display: false }, ticks: { color: '#e2e8f0' } } } }

@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between h-20">
         
         <div class="flex items-center gap-3">
-          <img src="/logo-cakrawala-v2.png" alt="Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(14,165,233,0.5)]">
+          <img src="/IMDB_Logo_2016.svg" alt="Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(14,165,233,0.5)]">
           <h1 class="font-bold text-2xl text-white tracking-wide font-mono hidden sm:block">IMDB<span class="text-accent">PRO</span></h1>
         </div>
 
