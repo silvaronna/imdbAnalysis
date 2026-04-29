@@ -10,8 +10,6 @@ export function useTechnicalData(movies) {
     return Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, limit)
   }
 
-  // 🔥 SOLUSI: RENTANG TAHUN DINAMIS
-  // Secara otomatis mencari tahun paling tua dan paling muda dari data yang difilter saat ini
   const dynamicYearRange = computed(() => {
     if (!movies.value || movies.value.length === 0) return []
     const years = movies.value.map(m => parseInt(m.releaseyear)).filter(y => !isNaN(y))
@@ -21,11 +19,11 @@ export function useTechnicalData(movies) {
     return Array.from({length: maxYear - minYear + 1}, (_, i) => minYear + i)
   })
 
-  // 1. TREN KUALITAS GENRE
+  // 1. GENRE TREND
   const genreTrendData = computed(() => {
-    if (!movies.value.length) return { labels: [], datasets: [] }
+    if (!movies.value || !movies.value.length) return { labels: [], datasets: [] }
     const targetGenres = getTopGenres(10)
-    const yearRange = dynamicYearRange.value // Gunakan Tahun Dinamis
+    const yearRange = dynamicYearRange.value
     
     const datasets = targetGenres.map((genre, index) => {
       const dataPoints = yearRange.map(year => {
@@ -38,9 +36,10 @@ export function useTechnicalData(movies) {
     return { labels: yearRange, datasets }
   })
 
-  // 2. ELITE ACTOR PROFILE
+  // 2. SCATTER ACTOR (DENGAN SEARCH)
+  const searchActorScatter = ref('')
   const actorQualityData = computed(() => {
-    if (!movies.value.length) return { datasets: [] }
+    if (!movies.value || !movies.value.length) return { datasets: [] }
     const actorStats = {}
     movies.value.forEach(m => {
       if (m.cast && m.imdbrating) m.cast.split(',').forEach(a => {
@@ -49,14 +48,26 @@ export function useTechnicalData(movies) {
         actorStats[name].count++; actorStats[name].sumRating += parseFloat(m.imdbrating)
       })
     })
-    const points = Object.keys(actorStats).filter(name => actorStats[name].count >= 5).map(name => ({ x: actorStats[name].count, y: parseFloat((actorStats[name].sumRating / actorStats[name].count).toFixed(2)), actorName: name }))
-    return { datasets: [{ label: 'Actor Profile', data: points, backgroundColor: 'rgba(6, 182, 212, 0.5)', borderColor: colors[0], borderWidth: 1, pointRadius: 5, pointHoverRadius: 8, pointHoverBackgroundColor: hoverColors[0] }] }
+    
+    const rawPoints = Object.keys(actorStats).filter(name => actorStats[name].count >= 5).map(name => ({ x: actorStats[name].count, y: parseFloat((actorStats[name].sumRating / actorStats[name].count).toFixed(2)), actorName: name }))
+
+    const bgColors = []
+    const radii = []
+    const query = searchActorScatter.value.toLowerCase().trim()
+    
+    rawPoints.forEach(p => {
+      const isMatch = query === '' || String(p.actorName).toLowerCase().includes(query)
+      bgColors.push(isMatch ? 'rgba(6, 182, 212, 0.8)' : 'rgba(51, 65, 85, 0.15)')
+      radii.push(isMatch ? (query === '' ? 5 : 10) : 2)
+    })
+
+    return { datasets: [{ label: 'Actor Profile', data: rawPoints, backgroundColor: bgColors, borderWidth: 0, pointRadius: radii, pointHoverRadius: 10 }] }
   })
 
-  // 3. ACTOR GENRE PORTFOLIO 
+  // 3. ACTOR PORTFOLIO 
   const searchedActor = ref('') 
   const actorPortfolioData = computed(() => {
-    if (!movies.value.length) return { labels: [], datasets: [] }
+    if (!movies.value || !movies.value.length) return { labels: [], datasets: [] }
     const actorCounts = {}
     movies.value.forEach(m => { if (m.cast) m.cast.split(',').forEach(a => { actorCounts[a.trim()] = (actorCounts[a.trim()] || 0) + 1 }) })
     
@@ -84,18 +95,15 @@ export function useTechnicalData(movies) {
     return { labels: targetActors, datasets }
   })
 
-  // 4. QUALITY VS QUANTITY PARADOX
+  // 4. MIXED CHART
   const qualityQuantityData = computed(() => {
-    if (!movies.value.length) return { labels: [], datasets: [] }
-    const yearRange = dynamicYearRange.value // Gunakan Tahun Dinamis
+    if (!movies.value || !movies.value.length) return { labels: [], datasets: [] }
+    const yearRange = dynamicYearRange.value
     const counts = [], ratings = []
     yearRange.forEach(year => {
       const yearlyData = movies.value.filter(m => m.releaseyear === year && m.imdbrating)
       counts.push(yearlyData.length)
       const sum = yearlyData.reduce((a, b) => a + parseFloat(b.imdbrating), 0)
-      
-      // 🔥 FIX: Jika tidak ada rilis, kembalikan 'null' bukan 0, 
-      // agar garis rating tidak menukik tajam ke bawah menipu mata
       ratings.push(yearlyData.length ? (sum / yearlyData.length).toFixed(2) : null)
     })
     return {
@@ -107,5 +115,5 @@ export function useTechnicalData(movies) {
     }
   })
 
-  return { genreTrendData, actorQualityData, actorPortfolioData, qualityQuantityData, searchedActor }
+  return { genreTrendData, actorQualityData, actorPortfolioData, qualityQuantityData, searchedActor, searchActorScatter }
 }
